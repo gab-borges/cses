@@ -4,55 +4,72 @@ using namespace std;
 typedef vector<int> vi;
 typedef pair<int, int> ii;
 typedef long long ll;
+#define debug(x) cout << #x << " = " << x << '\n';
+#define vdebug(a) cout << #a << " = "; for(auto x: a) cout << x << ' '; cout << '\n';
+#define vvdebug(a) cout << #a <<" ="<<endl; for(auto &row:a){for(auto &x:row) cout<<x<<' '; cout << endl;}
 
-#define N 112345
+#define MAX_N 112345
+int n, m;
+vi adj[MAX_N], radj[MAX_N], toporder, comp(MAX_N, -1), visited(MAX_N, false);
+map<int, int> ans;
 
-vector<int> adj[N], rev[N];
-vector<bool> visited;
+void dfs(int node) {
+     visited[node] = true;
 
-void dfs(int node, vector<int> graph[]) {
-	if (visited[node]) return;
-	visited[node] = true;
+     for (int nei : adj[node])
+         if (!visited[nei])
+             dfs(nei);
 
-	for (auto nei : graph[node]) {
-		dfs(nei, graph);
-	}
+     toporder.push_back(node);
+}
+
+void dfs2(int node, int c) {
+    comp[node] = c;
+
+    for (int nei : radj[node])
+        if (comp[nei] == -1)
+            dfs2(nei, c);
+}
+
+void build() {
+    for (int i = 1; i <= n; i++)
+        if (!visited[i])
+            dfs(i);
+
+    reverse(toporder.begin(), toporder.end());
+
+    int c = 0;
+    for (int a : toporder) {
+        if (comp[a] == -1) {
+            ans[c] = a;
+            dfs2(a, c++);
+        }
+    }
 }
 
 int main() {
-	ios_base::sync_with_stdio(0);
-	cin.tie(0);
+    ios_base::sync_with_stdio(0);
+    cin.tie(0);
 
-	int n, m; cin >> n >> m;
+    cin >> n >> m;
 
-	while (m--) {
-		int a, b; cin >> a >> b;
-		adj[a].push_back(b);
-		rev[b].push_back(a);
-	}
+    for (int i = 0; i < m; i++) {
+         int a, b;
+         cin >> a >> b;
 
-	visited.assign(n+1, false);
-	dfs(1, adj);
+         adj[a].push_back(b);
+         radj[b].push_back(a);
+    }
 
-	for (int i = 1; i <= n; i++)
-		if (visited[i] == false) {
-			cout << "NO\n";
-			cout << "1 " << i << "\n";
-			return 0;
-		}
-	
-	visited.assign(n+1, false);
-	dfs(1, rev);
+    build();
 
-	for (int i = 1; i <= n; i++)
-		if (visited[i] == false) {
-			cout << "NO\n";
-			cout << i << " 1" << '\n';
-			return 0;
-		}
-	
-	cout << "YES\n";
+    if (ans.size() == 1) {
+        cout << "YES\n";
+        return 0;
+    }
 
-	return 0;
+    cout << "NO\n";
+    cout << ans[1] << ' ' << ans[0] << '\n';
+
+    return 0;
 }
-
